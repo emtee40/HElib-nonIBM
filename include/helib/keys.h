@@ -108,6 +108,10 @@ public:
   //! @name Find key-switching matrices
   const std::vector<KeySwitch>& keySWlist() const;
 
+  //! @brief Creates a public key switching key
+const std::pair<std::vector<DoubleCRT>, std::vector<DoubleCRT>> genPublicKeySwitchingKey(const SecKey &secKey, int option);
+const std::pair<std::vector<DoubleCRT>, std::vector<DoubleCRT>> genPublicKeySwitchingKey2(const SecKey &secKey, int option);
+
   //! @brief Find a key-switching matrix by its indexes.
   //! If no such matrix exists it returns a dummy matrix with toKeyID==-1.
   const KeySwitch& getKeySWmatrix(const SKHandle& from, long toID = 0) const;
@@ -173,6 +177,12 @@ public:
                const NTL::ZZX& plaintxt,
                long ptxtSpace,
                bool highNoise) const;
+
+long Encrypt(DoubleCRT& c0,
+                     DoubleCRT& c1,
+                     const DoubleCRT& sk,
+                     long ptxtSpace,
+                     bool highNoise) const;
   /**
    * @deprecated This routine has a number of issues and is deprecated in favor
    * of the new `EncodedPtxt`-based routine.\n
@@ -315,7 +325,6 @@ class SecKey : public PubKey
 { // The secret key
 private:
   friend class KeySwitch;
-  std::vector<DoubleCRT> sKeys; // The secret key(s) themselves
   explicit SecKey(const PubKey& pk);
 
 public:
@@ -324,6 +333,9 @@ public:
    * information.
    */
   static constexpr std::string_view typeName = "SecKey";
+
+  std::vector<DoubleCRT> sKeys; // The secret key(s) themselves
+
 
   // Disable default constructor
   SecKey() = delete;

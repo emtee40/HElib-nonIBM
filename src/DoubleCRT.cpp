@@ -227,6 +227,8 @@ DoubleCRT& DoubleCRT::Op(const DoubleCRT& other, Fun fun, bool matchIndexSets)
   if (matchIndexSets && !(map.getIndexSet() >= other.map.getIndexSet())) {
 #if 0
     HELIB_NTIMER_START(addPrimes_1);
+    std::cout << map.getIndexSet() << " other: " << other.map.getIndexSet() << std::endl;
+
     Warning("addPrimes called (1) in DoubleCRT::op");
     addPrimes(other.map.getIndexSet() / map.getIndexSet()); // This is expensive
 #else
@@ -306,6 +308,7 @@ DoubleCRT& DoubleCRT::do_mul(const DoubleCRT& other, bool matchIndexSets)
   if (!(map.getIndexSet() <= other.map.getIndexSet())) { // Even more expensive
 #if 0
     HELIB_NTIMER_START(addPrimes_4);
+    std::cout << map.getIndexSet() << " other: " << other.map.getIndexSet() << std::endl;
     tmp = other;
     Warning("addPrimes called (2) in DoubleCRT::mul");
     tmp.addPrimes(map.getIndexSet() / other.map.getIndexSet());

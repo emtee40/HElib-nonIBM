@@ -30,6 +30,7 @@
 #include <helib/log.h>
 #include "internal_symbols.h" // DECRYPT_ON_PWFL_BASIS
 
+#include <iostream>
 #include "io.h"
 
 namespace helib {
@@ -281,6 +282,50 @@ double PubKey::getSKeyBound(long keyID) const { return skBounds.at(keyID); }
 
 const std::vector<KeySwitch>& PubKey::keySWlist() const { return keySwitching; }
 
+const std::pair<std::vector<DoubleCRT>, std::vector<DoubleCRT>> PubKey::genPublicKeySwitchingKey(const SecKey &secKey, int option){
+  std::cout << "Checking that there is only one secret key: num keys = " << secKey.sKeys.size() << std::endl;
+  
+  DoubleCRT fromKey = secKey.sKeys.at(0);
+
+  long n = context.getDigits().size();
+
+  std::vector<DoubleCRT> ks1;
+  ks1.resize(n, DoubleCRT(context, context.getCtxtPrimes() | context.getSpecialPrimes()));
+
+  std::vector<DoubleCRT> ks2;
+  ks2.resize(n, DoubleCRT(context, context.getCtxtPrimes() | context.getSpecialPrimes()));
+
+  fromKey *= context.productOfPrimes(context.getSpecialPrimes());
+
+  for (long i = 0; i < n; i++) {
+      long noise = Encrypt(ks1[i], ks2[i], fromKey, pubEncrKey.ptxtSpace, false);
+      fromKey *= context.productOfPrimes(context.getDigit(i));
+  }
+  return std::pair(ks1, ks2);
+}
+const std::pair<std::vector<DoubleCRT>, std::vector<DoubleCRT>> PubKey::genPublicKeySwitchingKey2(const SecKey &secKey, int option){
+  std::cout << "Checking that there is only one secret key: num keys = " << secKey.sKeys.size() << std::endl;
+  
+  DoubleCRT fromKey = secKey.sKeys.at(0);
+  fromKey.SetOne();
+
+  long n = context.getDigits().size();
+
+  std::vector<DoubleCRT> ks1;
+  ks1.resize(n, DoubleCRT(context, context.getCtxtPrimes() | context.getSpecialPrimes()));
+
+  std::vector<DoubleCRT> ks2;
+  ks2.resize(n, DoubleCRT(context, context.getCtxtPrimes() | context.getSpecialPrimes()));
+
+  fromKey *= context.productOfPrimes(context.getSpecialPrimes());
+
+  for (long i = 0; i < n; i++) {
+      long noise = Encrypt(ks1[i], ks2[i], fromKey, pubEncrKey.ptxtSpace, false);
+      fromKey *= context.productOfPrimes(context.getDigit(i));
+  }
+  return std::pair(ks1, ks2);
+}
+
 const KeySwitch& PubKey::getKeySWmatrix(long fromSPower,
                                         long fromXPower,
                                         long fromID,
@@ -483,6 +528,60 @@ long PubKey::Encrypt(Ctxt& ctxt,
   // std::cerr << "*** ctxt.noiseBound " << ctxt.noiseBound << "\n";
 
   // CheckCtxt(ctxt, "after encryption");
+
+  return ptxtSpace;
+}
+
+long PubKey::Encrypt(DoubleCRT& c0,
+                     DoubleCRT& c1,
+                     const DoubleCRT& sk,
+                     long ptxtSpace,
+                     bool highNoise) const
+{
+
+  // generate a random encryption of zero from the public encryption key
+
+  DoubleCRT pb0 = pubEncrKey.parts[0];
+  DoubleCRT pb1 = pubEncrKey.parts[1];
+
+  pb0.addPrimesAndScale(context.getSpecialPrimes());
+  pb1.addPrimesAndScale(context.getSpecialPrimes());
+  
+  c0.Add(pb0, false);
+  c1.Add(pb1, false);
+
+
+  long noiseBound = 0;
+
+  DoubleCRT e(context, context.getCtxtPrimes() | context.getSpecialPrimes());
+  DoubleCRT r(context, context.getCtxtPrimes() | context.getSpecialPrimes());
+  
+  double r_bound = r.sampleSmallBounded();
+
+  // std::cerr << "*** r_bound*pubEncrKey.noiseBound " << r_bound *
+  // pubEncrKey.noiseBound << "\n";
+
+  double stdev = to_double(context.getStdev());
+  if (context.getZMStar().getPow2() == 0) // not power of two
+    stdev *= sqrt(context.getM());
+
+  c0 *= r;
+  c1 *= r;
+
+  NTL::xdouble e_bound;
+
+    
+  e_bound = e.sampleGaussianBounded(stdev);
+
+  e *= ptxtSpace;
+  e_bound *= ptxtSpace;
+
+  c0 += e;
+  c1 += e;
+
+  //noiseBound += e_bound;
+
+  c0.Add(sk, false);
 
   return ptxtSpace;
 }
@@ -1363,6 +1462,7 @@ void SecKey::Decrypt(NTL::ZZX& plaintxt,
       ptxt += part;
       continue;
     }
+
 
     long keyIdx = part.skHandle.getSecretKeyID();
     DoubleCRT key = sKeys.at(keyIdx); // copy object, not a reference

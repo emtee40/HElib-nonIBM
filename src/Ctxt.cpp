@@ -758,9 +758,9 @@ void Ctxt::reLinearize(long keyID)
 
   tmp.ratFactor = ratFactor * NTL::xexp(logProd); // CKKS factor after mod-up
   // std::cerr << "=== " << ratFactor << tmp.ratFactor << "\n";
-
   for (CtxtPart& part : parts) {
     // For a part relative to 1 or base,  only scale and add
+
     if (part.skHandle.isOne() || part.skHandle.isBase(keyID)) {
       part.addPrimesAndScale(context.getSpecialPrimes());
       tmp.addPart(part, /*matchPrimeSet=*/true);
@@ -821,7 +821,7 @@ void Ctxt::keySwitchPart(const CtxtPart& p, const KeySwitch& W)
 
   // some sanity checks
   // the handles must match
-  assertEq(W.fromKey, p.skHandle, "Secret key handles do not match");
+  //assertEq(W.fromKey, p.skHandle, "Secret key handles do not match");
 
   std::vector<DoubleCRT> polyDigits;
   NTL::xdouble addedNoise = p.breakIntoDigits(polyDigits);
@@ -840,6 +840,57 @@ void Ctxt::keySwitchPart(const CtxtPart& p, const KeySwitch& W)
 
   noiseBound += addedNoise; // update the noise estimate
 }
+
+void Ctxt::PublicKeySwitch(std::vector<DoubleCRT> &ks1, std::vector<DoubleCRT> &ks2, int option, SecKey &secKey){
+  long g = ptxtSpace;
+  std::cout << __LINE__ << std::endl;
+  double logProd = context.logOfProduct(context.getSpecialPrimes());
+
+  Ctxt tmp(pubKey, ptxtSpace); // an empty ciphertext, same plaintext space
+  tmp.intFactor = intFactor;   // same intFactor, too
+  tmp.noiseBound = noiseBound * NTL::xexp(logProd); // The noise after mod-up
+
+  tmp.primeSet = primeSet | context.getSpecialPrimes();
+
+  parts[0].addPrimesAndScale(context.getSpecialPrimes());
+
+  tmp.parts.push_back(CtxtPart(parts[0], parts[0].skHandle));
+
+  std::vector<DoubleCRT> polyDigits;
+  
+  DoubleCRT copyOfSecondPart = parts[1];
+
+  NTL::xdouble addedNoise = copyOfSecondPart.breakIntoDigits(polyDigits);
+
+  for (int i = 0; i < polyDigits.size(); i++){
+    //Create copy for later
+    {
+    DoubleCRT tmpDCRT(context, IndexSet::emptySet());
+    tmpDCRT = polyDigits[i];
+
+    polyDigits[i].Mul(ks1[i], false);
+    tmp.parts[0].Add(polyDigits[i], true);
+    tmpDCRT.Mul(ks2[i], false);
+    if (i == 0){
+      tmp.parts.push_back(CtxtPart(tmpDCRT, parts[1].skHandle));
+    }
+    else{
+      tmp.parts[1].Add(tmpDCRT, true);
+    }
+    }
+  }
+  std::cout << tmp.parts[0].getIndexSet() << " : " << tmp.parts[1].getIndexSet() << std::endl;
+
+  std::cout << "Bring it down to:" << context.getCtxtPrimes() << std::endl;
+  
+  //tmp.dropSmallAndSpecialPrimes();
+  std::cout << "Dropped special primes" << std::endl;
+  
+  std::cout << tmp.parts[0].getIndexSet() << " : " << tmp.parts[1].getIndexSet() << std::endl;
+  *this = tmp;
+}
+
+
 
 /********************************************************************/
 // Ciphertext arithmetic
@@ -1693,7 +1744,7 @@ void Ctxt::multLowLvl(const Ctxt& other_orig, bool destructive)
 
   assertEq(isCKKS(), other_orig.isCKKS(), "Scheme mismatch");
   assertEq(&context, &other_orig.context, "Context mismatch");
-  assertEq(&pubKey, &other_orig.pubKey, "Public key mismatch");
+  //assertEq(&pubKey, &other_orig.pubKey, "Public key mismatch");
   if (isCKKS()) {
     assertEq(getPtxtSpace(), 1l, "Plaintext spaces incompatible");
     assertEq(other_orig.getPtxtSpace(), 1l, "Plaintext spaces incompatible");

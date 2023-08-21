@@ -402,7 +402,8 @@ class Ctxt
 
   const Context& context;      // points to the parameters of this FHE instance
   const PubKey& pubKey;        // points to the public encryption key;
-  std::vector<CtxtPart> parts; // the ciphertext parts
+  public:
+    std::vector<CtxtPart> parts; // the ciphertext parts
   IndexSet primeSet; // the primes relative to which the parts are defined
   long ptxtSpace;    // plaintext space for this ciphertext (either p or p^r)
 
@@ -841,6 +842,9 @@ public:
     multByConstant(ptxt);
     return *this;
   }
+
+  //KeySwitching algorithm  
+void PublicKeySwitch(std::vector<DoubleCRT> &ks1, std::vector<DoubleCRT> &ks2, int option, SecKey &secKey);
 
 private: // impl only
   void multByConstant(const FatEncodedPtxt_BGV& ptxt);
