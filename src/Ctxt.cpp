@@ -843,7 +843,6 @@ void Ctxt::keySwitchPart(const CtxtPart& p, const KeySwitch& W)
 
 void Ctxt::PublicKeySwitch(std::vector<DoubleCRT> &ks1, std::vector<DoubleCRT> &ks2, int option, SecKey &secKey){
   long g = ptxtSpace;
-  std::cout << __LINE__ << std::endl;
   double logProd = context.logOfProduct(context.getSpecialPrimes());
 
   Ctxt tmp(pubKey, ptxtSpace); // an empty ciphertext, same plaintext space
@@ -879,14 +878,7 @@ void Ctxt::PublicKeySwitch(std::vector<DoubleCRT> &ks1, std::vector<DoubleCRT> &
     }
     }
   }
-  std::cout << tmp.parts[0].getIndexSet() << " : " << tmp.parts[1].getIndexSet() << std::endl;
-
-  std::cout << "Bring it down to:" << context.getCtxtPrimes() << std::endl;
   
-  //tmp.dropSmallAndSpecialPrimes();
-  std::cout << "Dropped special primes" << std::endl;
-  
-  std::cout << tmp.parts[0].getIndexSet() << " : " << tmp.parts[1].getIndexSet() << std::endl;
   *this = tmp;
 }
 

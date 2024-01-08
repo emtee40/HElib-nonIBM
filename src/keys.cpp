@@ -282,9 +282,7 @@ double PubKey::getSKeyBound(long keyID) const { return skBounds.at(keyID); }
 
 const std::vector<KeySwitch>& PubKey::keySWlist() const { return keySwitching; }
 
-const std::pair<std::vector<DoubleCRT>, std::vector<DoubleCRT>> PubKey::genPublicKeySwitchingKey(const SecKey &secKey, int option){
-  std::cout << "Checking that there is only one secret key: num keys = " << secKey.sKeys.size() << std::endl;
-  
+const std::pair<std::vector<DoubleCRT>, std::vector<DoubleCRT>> PubKey::genPublicKeySwitchingKey(const SecKey &secKey, int option){  
   DoubleCRT fromKey = secKey.sKeys.at(0);
 
   long n = context.getDigits().size();
@@ -303,9 +301,7 @@ const std::pair<std::vector<DoubleCRT>, std::vector<DoubleCRT>> PubKey::genPubli
   }
   return std::pair(ks1, ks2);
 }
-const std::pair<std::vector<DoubleCRT>, std::vector<DoubleCRT>> PubKey::genPublicKeySwitchingKey2(const SecKey &secKey, int option){
-  std::cout << "Checking that there is only one secret key: num keys = " << secKey.sKeys.size() << std::endl;
-  
+const std::pair<std::vector<DoubleCRT>, std::vector<DoubleCRT>> PubKey::genPublicKeySwitchingKey2(const SecKey &secKey, int option){  
   DoubleCRT fromKey = secKey.sKeys.at(0);
   fromKey.SetOne();
 
