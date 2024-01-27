@@ -842,6 +842,8 @@ void Ctxt::keySwitchPart(const CtxtPart& p, const KeySwitch& W)
 }
 
 void Ctxt::PublicKeySwitch(std::vector<DoubleCRT> &ks1, std::vector<DoubleCRT> &ks2, int option, SecKey &secKey){
+  dropSmallAndSpecialPrimes();
+
   long g = ptxtSpace;
   double logProd = context.logOfProduct(context.getSpecialPrimes());
 
@@ -850,6 +852,8 @@ void Ctxt::PublicKeySwitch(std::vector<DoubleCRT> &ks1, std::vector<DoubleCRT> &
   tmp.noiseBound = noiseBound * NTL::xexp(logProd); // The noise after mod-up
 
   tmp.primeSet = primeSet | context.getSpecialPrimes();
+
+  auto overlap = parts[0].getIndexSet() & context.getSpecialPrimes();
 
   parts[0].addPrimesAndScale(context.getSpecialPrimes());
 
