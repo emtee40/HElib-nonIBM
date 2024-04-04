@@ -109,8 +109,7 @@ public:
   const std::vector<KeySwitch>& keySWlist() const;
 
   //! @brief Creates a public key switching key
-const std::pair<std::vector<DoubleCRT>, std::vector<DoubleCRT>> genPublicKeySwitchingKey(const SecKey &secKey, int option);
-const std::pair<std::vector<DoubleCRT>, std::vector<DoubleCRT>> genPublicKeySwitchingKey2(const SecKey &secKey, int option);
+  const std::pair<std::vector<DoubleCRT>, std::vector<DoubleCRT>> genPublicKeySwitchingKey(const SecKey &secKey);
 
   //! @brief Find a key-switching matrix by its indexes.
   //! If no such matrix exists it returns a dummy matrix with toKeyID==-1.

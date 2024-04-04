@@ -9,12 +9,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License. See accompanying LICENSE file.
  */
- 
+
 /* Copyright (C) 2022 Intel Corporation
-* SPDX-License-Identifier: Apache-2.0
-*
-* Added functionallity for separating the SK, PK, and key switching matrices.
-*/
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Added functionallity for separating the SK, PK, and key switching matrices.
+ */
 
 #include <queue>
 
@@ -282,42 +282,28 @@ double PubKey::getSKeyBound(long keyID) const { return skBounds.at(keyID); }
 
 const std::vector<KeySwitch>& PubKey::keySWlist() const { return keySwitching; }
 
-const std::pair<std::vector<DoubleCRT>, std::vector<DoubleCRT>> PubKey::genPublicKeySwitchingKey(const SecKey &secKey, int option){  
+const std::pair<std::vector<DoubleCRT>, std::vector<DoubleCRT>> PubKey::
+    genPublicKeySwitchingKey(const SecKey& secKey)
+{
   DoubleCRT fromKey = secKey.sKeys.at(0);
 
   long n = context.getDigits().size();
 
   std::vector<DoubleCRT> ks1;
-  ks1.resize(n, DoubleCRT(context, context.getCtxtPrimes() | context.getSpecialPrimes()));
+  ks1.resize(
+      n,
+      DoubleCRT(context, context.getCtxtPrimes() | context.getSpecialPrimes()));
 
   std::vector<DoubleCRT> ks2;
-  ks2.resize(n, DoubleCRT(context, context.getCtxtPrimes() | context.getSpecialPrimes()));
+  ks2.resize(
+      n,
+      DoubleCRT(context, context.getCtxtPrimes() | context.getSpecialPrimes()));
 
   fromKey *= context.productOfPrimes(context.getSpecialPrimes());
 
   for (long i = 0; i < n; i++) {
-      long noise = Encrypt(ks1[i], ks2[i], fromKey, pubEncrKey.ptxtSpace, false);
-      fromKey *= context.productOfPrimes(context.getDigit(i));
-  }
-  return std::pair(ks1, ks2);
-}
-const std::pair<std::vector<DoubleCRT>, std::vector<DoubleCRT>> PubKey::genPublicKeySwitchingKey2(const SecKey &secKey, int option){  
-  DoubleCRT fromKey = secKey.sKeys.at(0);
-  fromKey.SetOne();
-
-  long n = context.getDigits().size();
-
-  std::vector<DoubleCRT> ks1;
-  ks1.resize(n, DoubleCRT(context, context.getCtxtPrimes() | context.getSpecialPrimes()));
-
-  std::vector<DoubleCRT> ks2;
-  ks2.resize(n, DoubleCRT(context, context.getCtxtPrimes() | context.getSpecialPrimes()));
-
-  fromKey *= context.productOfPrimes(context.getSpecialPrimes());
-
-  for (long i = 0; i < n; i++) {
-      long noise = Encrypt(ks1[i], ks2[i], fromKey, pubEncrKey.ptxtSpace, false);
-      fromKey *= context.productOfPrimes(context.getDigit(i));
+    long noise = Encrypt(ks1[i], ks2[i], fromKey, pubEncrKey.ptxtSpace, false);
+    fromKey *= context.productOfPrimes(context.getDigit(i));
   }
   return std::pair(ks1, ks2);
 }
@@ -542,16 +528,15 @@ long PubKey::Encrypt(DoubleCRT& c0,
 
   pb0.addPrimesAndScale(context.getSpecialPrimes());
   pb1.addPrimesAndScale(context.getSpecialPrimes());
-  
+
   c0.Add(pb0, false);
   c1.Add(pb1, false);
-
 
   long noiseBound = 0;
 
   DoubleCRT e(context, context.getCtxtPrimes() | context.getSpecialPrimes());
   DoubleCRT r(context, context.getCtxtPrimes() | context.getSpecialPrimes());
-  
+
   double r_bound = r.sampleSmallBounded();
 
   // std::cerr << "*** r_bound*pubEncrKey.noiseBound " << r_bound *
@@ -566,7 +551,6 @@ long PubKey::Encrypt(DoubleCRT& c0,
 
   NTL::xdouble e_bound;
 
-    
   e_bound = e.sampleGaussianBounded(stdev);
 
   e *= ptxtSpace;
@@ -575,7 +559,7 @@ long PubKey::Encrypt(DoubleCRT& c0,
   c0 += e;
   c1 += e;
 
-  //noiseBound += e_bound;
+  // noiseBound += e_bound;
 
   c0.Add(sk, false);
 
@@ -1458,7 +1442,6 @@ void SecKey::Decrypt(NTL::ZZX& plaintxt,
       ptxt += part;
       continue;
     }
-
 
     long keyIdx = part.skHandle.getSecretKeyID();
     DoubleCRT key = sKeys.at(keyIdx); // copy object, not a reference

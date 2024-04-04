@@ -821,7 +821,7 @@ void Ctxt::keySwitchPart(const CtxtPart& p, const KeySwitch& W)
 
   // some sanity checks
   // the handles must match
-  //assertEq(W.fromKey, p.skHandle, "Secret key handles do not match");
+  // assertEq(W.fromKey, p.skHandle, "Secret key handles do not match");
 
   std::vector<DoubleCRT> polyDigits;
   NTL::xdouble addedNoise = p.breakIntoDigits(polyDigits);
@@ -841,7 +841,9 @@ void Ctxt::keySwitchPart(const CtxtPart& p, const KeySwitch& W)
   noiseBound += addedNoise; // update the noise estimate
 }
 
-void Ctxt::PublicKeySwitch(std::vector<DoubleCRT> &ks1, std::vector<DoubleCRT> &ks2, int option, SecKey &secKey){
+void Ctxt::PublicKeySwitch(std::pair<std::vector<DoubleCRT>&,
+                           std::vector<DoubleCRT>&> ksk)
+{
   dropSmallAndSpecialPrimes();
 
   long g = ptxtSpace;
@@ -860,33 +862,31 @@ void Ctxt::PublicKeySwitch(std::vector<DoubleCRT> &ks1, std::vector<DoubleCRT> &
   tmp.parts.push_back(CtxtPart(parts[0], parts[0].skHandle));
 
   std::vector<DoubleCRT> polyDigits;
-  
+
   DoubleCRT copyOfSecondPart = parts[1];
 
   NTL::xdouble addedNoise = copyOfSecondPart.breakIntoDigits(polyDigits);
 
-  for (int i = 0; i < polyDigits.size(); i++){
-    //Create copy for later
+  for (int i = 0; i < polyDigits.size(); i++) {
+    // Create copy for later
     {
-    DoubleCRT tmpDCRT(context, IndexSet::emptySet());
-    tmpDCRT = polyDigits[i];
+      DoubleCRT tmpDCRT(context, IndexSet::emptySet());
+      tmpDCRT = polyDigits[i];
 
-    polyDigits[i].Mul(ks1[i], false);
-    tmp.parts[0].Add(polyDigits[i], true);
-    tmpDCRT.Mul(ks2[i], false);
-    if (i == 0){
-      tmp.parts.push_back(CtxtPart(tmpDCRT, parts[1].skHandle));
-    }
-    else{
-      tmp.parts[1].Add(tmpDCRT, true);
-    }
+      polyDigits[i].Mul(ksk.first[i], false);
+      tmp.parts[0].Add(polyDigits[i], true);
+      tmpDCRT.Mul(ksk.second[i], false);
+      if (i == 0) {
+        tmp.parts.push_back(CtxtPart(tmpDCRT, parts[1].skHandle));
+      } else {
+        tmp.parts[1].Add(tmpDCRT, true);
+      }
     }
   }
-  
+
+  addedNoise += addedNoise;
   *this = tmp;
 }
-
-
 
 /********************************************************************/
 // Ciphertext arithmetic
@@ -1740,7 +1740,7 @@ void Ctxt::multLowLvl(const Ctxt& other_orig, bool destructive)
 
   assertEq(isCKKS(), other_orig.isCKKS(), "Scheme mismatch");
   assertEq(&context, &other_orig.context, "Context mismatch");
-  //assertEq(&pubKey, &other_orig.pubKey, "Public key mismatch");
+  // assertEq(&pubKey, &other_orig.pubKey, "Public key mismatch");
   if (isCKKS()) {
     assertEq(getPtxtSpace(), 1l, "Plaintext spaces incompatible");
     assertEq(other_orig.getPtxtSpace(), 1l, "Plaintext spaces incompatible");

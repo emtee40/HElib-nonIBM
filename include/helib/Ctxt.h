@@ -843,8 +843,13 @@ public:
     return *this;
   }
 
-  //KeySwitching algorithm  
-void PublicKeySwitch(std::vector<DoubleCRT> &ks1, std::vector<DoubleCRT> &ks2, int option, SecKey &secKey);
+  /**
+   * @brief Public Key Switching, switches the ciphertext from an encryption under one key to another  
+   * @param ksk The key switching matrices to switch the ciphertext to the new key
+   **/
+
+  void PublicKeySwitch(std::pair<std::vector<DoubleCRT>&,
+                           std::vector<DoubleCRT>&> ksk);
 
 private: // impl only
   void multByConstant(const FatEncodedPtxt_BGV& ptxt);
