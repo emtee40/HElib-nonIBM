@@ -219,8 +219,9 @@ DoubleCRT& DoubleCRT::Op(const DoubleCRT& other, Fun fun, bool matchIndexSets)
   if (isDryRun())
     return *this;
 
-  if (&context != &other.context)
+  if (&context != &other.context){
     throw RuntimeError("DoubleCRT::Op: incompatible objects");
+  }
 
   // VJS-FIXME: experiment to ignore matchIndexSets
   // Match the index sets, if needed
@@ -284,8 +285,9 @@ DoubleCRT& DoubleCRT::do_mul(const DoubleCRT& other, bool matchIndexSets)
   if (isDryRun())
     return *this;
 
-  if (&context != &other.context)
+  if (&context != &other.context){
     throw RuntimeError("DoubleCRT::Op: incompatible objects");
+  }
 
   // VJS-FIXME: experiment to ignore matchIndexSets
   // Match the index sets, if needed
